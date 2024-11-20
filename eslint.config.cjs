@@ -28,12 +28,19 @@ module.exports = [
             "prettier/prettier": "error",
             "react/react-in-jsx-scope": "off",
             "react/prop-types": "off",
+            "@typescript-eslint/no-explicit-any": "off",
             "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
             "@typescript-eslint/explicit-module-boundary-types": "off",
         },
         settings: {
             react: {
                 version: "detect",
+            },
+            'import/resolver': {
+                alias: {
+                    map: [['@', './src']],
+                    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+                },
             },
         },
     },
