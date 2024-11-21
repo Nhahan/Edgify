@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const path = require('path');
 const resolve = require('@rollup/plugin-node-resolve').default;
 const commonjs = require('@rollup/plugin-commonjs');
@@ -31,12 +32,14 @@ module.exports = [
       alias({
         entries: [{ find: '@', replacement: path.resolve(__dirname, 'src') }],
       }),
-      resolve(),
-      commonjs(),
       typescript({
         tsconfig: './tsconfig.json',
         useTsconfigDeclarationDir: true,
       }),
+      resolve({
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+      }),
+      commonjs(),
     ],
     external,
   },

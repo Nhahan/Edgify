@@ -17,9 +17,6 @@ importers:
       react-dom:
         specifier: ^18.0.0
         version: 18.3.1(react@18.3.1)
-      tslib:
-        specifier: ^2.8.1
-        version: 2.8.1
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.2.0
@@ -108,9 +105,6 @@ importers:
       typescript:
         specifier: ^4.9.5
         version: 4.9.5
-      web-vitals:
-        specifier: ^2.1.4
-        version: 2.1.4
 
 packages:
 
@@ -1802,9 +1796,6 @@ packages:
 
   v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
-
-  web-vitals@2.1.4:
-    resolution: {integrity: sha512-sVWcwhU5mX6crfI5Vd2dC4qchyTqxV8URinzt25XqVh+bHEPGH4C3NPrNionCP7Obx59wrYEbNlw4Z8sjALzZg==}
 
   which-boxed-primitive@1.0.2:
     resolution: {integrity: sha512-bwZdv0AKLpplFY2KZRX6TvyuN7ojjr7lwkg6ml0roIy9YeuSr7JS372qlNW18UQYzgYK9ziGcerWqZOmEn9VNg==}
@@ -3742,8 +3733,6 @@ snapshots:
   util-deprecate@1.0.2: {}
 
   v8-compile-cache-lib@3.0.1: {}
-
-  web-vitals@2.1.4: {}
 
   which-boxed-primitive@1.0.2:
     dependencies:

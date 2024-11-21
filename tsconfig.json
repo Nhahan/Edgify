@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
     "declaration": true,
+    "declarationMap": true,
     "declarationDir": "./dist/types",
     "module": "esnext",
     "moduleResolution": "node",
     "target": "es6",
     "jsx": "react-jsx",
     "strict": true,
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["src/*"]
     },
     "esModuleInterop": true,
     "skipLibCheck": true

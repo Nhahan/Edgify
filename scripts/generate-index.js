@@ -1,14 +1,11 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+/* eslint-disable @typescript-eslint/no-require-imports */
+const fs = require('fs');
+const path = require('path');
 
 const rootDir = path.resolve(__dirname, '../src');
 const indexFilePath = path.join(rootDir, 'index.ts');
 
-function getAllFiles(dir: string, fileList: string[] = []): string[] {
+function getAllFiles(dir, fileList = []) {
   const files = fs.readdirSync(dir);
 
   files.forEach((file) => {
@@ -25,17 +22,19 @@ function getAllFiles(dir: string, fileList: string[] = []): string[] {
   return fileList;
 }
 
-function makeExportPath(filePath: string): string {
+function makeExportPath(filePath) {
   const relativePath = path.relative(rootDir, filePath);
   const cleanedPath = relativePath.replace(/\\/g, '/').replace(/\.(ts|tsx)$/, '');
   return `export * from './${cleanedPath}';`;
 }
 
-function generateIndexFile(): void {
+function generateIndexFile() {
   const allFiles = getAllFiles(rootDir);
   const exportStatements = allFiles.map(makeExportPath).join('\n');
 
-  fs.writeFileSync(indexFilePath, exportStatements, 'utf-8');
+  const content = `${exportStatements}\n`;
+
+  fs.writeFileSync(indexFilePath, content, 'utf-8');
   console.log(`Generated ${indexFilePath} with ${allFiles.length} exports.`);
 }
 
