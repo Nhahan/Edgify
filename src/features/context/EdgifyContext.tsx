@@ -1,8 +1,5 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
-import { EdgifyState, NodeData, EdgeData, Position, ActionType } from '@/shared/types/core';
-import { createInitialState } from '../model/initial-state';
-import { edgifyReducer } from '../model/reducer';
-import { createActions } from '../model/actions';
+import React, { createContext, useContext } from 'react';
+import { ActionType, EdgeData, EdgifyState, NodeData, Position } from '@/shared/types/core';
 
 export const EdgifyContext = createContext<{
   state: EdgifyState;
@@ -16,23 +13,6 @@ export const EdgifyContext = createContext<{
   undo: () => void;
   redo: () => void;
 } | null>(null);
-
-export const EdgifyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, dispatch] = useReducer(edgifyReducer, createInitialState());
-  const actions = createActions(dispatch);
-
-  return (
-    <EdgifyContext.Provider
-      value={{
-        state,
-        dispatch,
-        ...actions,
-      }}
-    >
-      {children}
-    </EdgifyContext.Provider>
-  );
-};
 
 export const useEdgify = () => {
   const context = useContext(EdgifyContext);
