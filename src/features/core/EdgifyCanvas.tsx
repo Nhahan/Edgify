@@ -9,13 +9,13 @@ import { Edge } from '@/features/core/Edge';
 import { Node } from '@/features/core/Node';
 import { useEdgify } from '@/features/context/EdgifyContext';
 import { useStateUpdate } from '@/shared/hooks/useStateUpdate';
+import { Controller } from '@/features/core/Controller';
 
 interface EdgifyProps {
   initialNodes?: NodeData[];
   initialEdges?: EdgeData[];
   onNodesChange?: (nodes: NodeData[]) => void;
   onEdgesChange?: (edges: EdgeData[]) => void;
-  className?: string;
   width?: number;
   height?: number;
 }
@@ -25,9 +25,8 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
   initialEdges = [],
   onNodesChange,
   onEdgesChange,
-  className,
-  width = 1920,
-  height = 1080,
+  width = 8000,
+  height = 6000,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { zoom, handleZoom } = useZoom();
@@ -35,6 +34,15 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
   const { state, addNode, addEdge } = useEdgify();
   const { debouncedNodesUpdate, debouncedEdgesUpdate } = useStateUpdate(onNodesChange, onEdgesChange);
   useKeyboardShortcuts();
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const centerX = width / 2 - window.innerWidth / 2;
+      const centerY = height / 2 - window.innerHeight / 2;
+      containerRef.current.scrollLeft = centerX;
+      containerRef.current.scrollTop = centerY;
+    }
+  }, [width, height]);
 
   useEffect(() => {
     debouncedNodesUpdate(state.nodes);
@@ -72,20 +80,16 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
       handleDrag(nodeId, position);
     }
   };
-
+  console.log(55);
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-full overflow-hidden ${className}`}
-      style={{
-        width: `${width}px`,
-        height: `${height}px`,
-      }}
+      className='relative overflow-auto w-full h-screen'
       onWheel={handleWheel}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      <Background />
+      <Background width={width} height={height} />
       <svg className='absolute inset-0 w-full h-full' style={{ transform: `scale(${zoom})` }}>
         {state.edges.map((edge) => (
           <Edge key={edge.id} data={edge} />
@@ -96,7 +100,8 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
           <Node key={node.id} data={node} />
         ))}
       </div>
-      <MiniMap />
+      <Controller />
+      <MiniMap width={width} height={height} />
     </div>
   );
 };

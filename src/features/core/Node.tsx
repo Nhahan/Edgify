@@ -47,6 +47,7 @@ export const Node: React.FC<NodeProps> = ({ data, onSelect }) => {
 
   return (
     <div
+      id={'Node' + data.id}
       className='absolute p-4 bg-white rounded-lg shadow-lg cursor-move'
       style={{
         left: data.position.x,

@@ -14,6 +14,7 @@ export const Edge: React.FC<EdgeProps> = ({ data, onSelect }) => {
 
   return (
     <path
+      id={Edge + data.id}
       d={path}
       stroke='#b1b1b7'
       strokeWidth={2}
