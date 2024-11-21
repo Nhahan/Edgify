@@ -1,46 +1,132 @@
-# Getting Started with Create React App
+# Edgify
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Edgify is a lightweight, customizable React flow diagram library that enables you to create interactive node-based workflows with a natural left-to-right flow direction. Built with TypeScript and styled with Tailwind CSS, it provides an intuitive interface for creating and managing complex flow diagrams.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- 🎯 Intuitive left-to-right flow direction
+- 🔄 Undo/Redo support
+- 🖱️ Zoom and pan capabilities
+- 🎨 Customizable node styling with Tailwind CSS
+- 🧲 Magnetic node connections
+- 📱 Responsive design
+- 🗺️ MiniMap navigation
+- ⌨️ Keyboard shortcuts
+- 🎮 Controller interface for node management
 
-### `npm start`
+## Quick Start
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### 1. Basic Setup
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+```tsx
+import { EdgifyProvider } from 'edgify';
 
-### `npm test`
+function App() {
+  return (
+    <EdgifyProvider>
+      <YourFlowDiagram />
+    </EdgifyProvider>
+  );
+}
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 2. Create Your Flow Diagram
 
-### `npm run build`
+```tsx
+import { EdgifyCanvas, NodeData, EdgeData } from 'edgify';
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+function FlowDiagram() {
+  // Example initial nodes
+  const initialNodes: NodeData[] = [
+    {
+      id: 'node-1',
+      type: 'default',
+      position: { x: 100, y: 100 },
+      dimensions: { width: 200, height: 100 },
+      inputs: [],
+      outputs: [
+        {
+          id: 'output-1',
+          nodeId: 'node-1',
+          type: 'output',
+          position: { x: 200, y: 50 }
+        }
+      ],
+      data: { label: 'Start Node' }
+    }
+  ];
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+  // Example initial edges
+  const initialEdges: EdgeData[] = [];
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+  const handleNodesChange = (nodes: NodeData[]) => {
+    console.log('Nodes updated:', nodes);
+  };
 
-### `npm run eject`
+  const handleEdgesChange = (edges: EdgeData[]) => {
+    console.log('Edges updated:', edges);
+  };
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+  return (
+    <div style={{ width: '100vw', height: '100vh' }}>
+      <EdgifyCanvas
+        initialNodes={initialNodes}
+        initialEdges={initialEdges}
+        onNodesChange={handleNodesChange}
+        onEdgesChange={handleEdgesChange}
+        width={8000}  // Optional: Custom canvas width (default: 8000)
+        height={6000} // Optional: Custom canvas height (default: 6000)
+      />
+    </div>
+  );
+}
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 3. Interact with the Flow Diagram
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+#### Adding Nodes
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+- Click the '+' button in the controller panel
+- New nodes will be added at the center of the current viewport
 
-## Learn More
+#### Creating Connections
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+1. Click and hold on a node's output handle (right side)
+2. Drag to another node's input handle (left side)
+3. Release to create a connection
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+#### Navigation
+
+- Pan: Click and drag on empty space
+- Zoom: Ctrl/Cmd + Mouse wheel
+- Select Node: Click on a node
+- Move Node: Drag and drop nodes
+- Delete: Select node/edge and press Delete/Backspace
+
+#### Keyboard Shortcuts
+
+- Ctrl/Cmd + Z: Undo
+- Ctrl/Cmd + Shift + Z: Redo
+- Delete/Backspace: Delete selected elements
+
+### 4. Handle State Changes
+
+```tsx
+function FlowDiagram() {
+  const handleNodesChange = (nodes: NodeData[]) => {
+    // State updates are debounced by default
+    saveNodesToDatabase(nodes);
+  };
+
+  const handleEdgesChange = (edges: EdgeData[]) => {
+    saveEdgesToDatabase(edges);
+  };
+
+  return (
+    <EdgifyCanvas
+      onNodesChange={handleNodesChange}
+      onEdgesChange={handleEdgesChange}
+    />
+  );
+}
+```
