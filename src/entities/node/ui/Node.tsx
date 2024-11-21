@@ -1,69 +1,41 @@
-import React, { useState, useRef, useEffect } from 'react';
+// @/entities/node/ui/Node
+import React, { useState } from 'react';
 import { Handle } from '@/shared/ui/Handle';
 import { useEdgify } from '@/app/providers/EdgifyProvider';
-import { NodeData, Position } from '@/shared/types/edgify.types';
+import { NodeData } from '@/shared/types/edgify.types';
+import { PlusCircle } from 'lucide-react';
 
 export const Node: React.FC<NodeData> = ({ id, position, size, data, selected }) => {
   const { actions } = useEdgify();
-  const nodeRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState<Position>({ x: 0, y: 0 });
-  const [isResizing, setIsResizing] = useState(false);
-  const [resizeStartSize, setResizeStartSize] = useState(size);
+  const [isHovered, setIsHovered] = useState(false);
+  const handleHeight = 12;
+  const handleSpacing = 24;
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button !== 0) return; // Only left click
-    if (e.target instanceof Element && e.target.closest('[data-handle-id]')) return;
+  // 각 output handle의 위치 계산
+  const getOutputPosition = (index: number): number => {
+    const totalHeight = data.outputs.length * handleSpacing;
+    const startY = (size.height - totalHeight) / 2;
+    return startY + index * handleSpacing + handleHeight;
+  };
 
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y,
+  const handleAddOutput = () => {
+    const newOutput = {
+      id: `${id}-output-${data.outputs.length + 1}`,
+      label: `Output ${data.outputs.length + 1}`,
+    };
+
+    actions.updateNode(id, {
+      data: {
+        ...data,
+        outputs: [...data.outputs, newOutput],
+      },
     });
-    actions.updateNode(id, { selected: true });
   };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
-      actions.updateNode(id, {
-        position: {
-          x: e.clientX - dragStart.x,
-          y: e.clientY - dragStart.y,
-        },
-      });
-    } else if (isResizing && nodeRef.current) {
-      const newWidth = resizeStartSize.width + (e.clientX - dragStart.x);
-      const newHeight = resizeStartSize.height + (e.clientY - dragStart.y);
-      actions.updateNode(id, {
-        size: {
-          width: Math.max(100, newWidth),
-          height: Math.max(50, newHeight),
-        },
-      });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    setIsResizing(false);
-  };
-
-  useEffect(() => {
-    if (isDragging || isResizing) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging, isResizing, dragStart]);
 
   return (
     <div
-      ref={nodeRef}
       className={`
-        absolute flex flex-col p-4 rounded-lg shadow-lg cursor-move
+        absolute flex flex-col p-4 rounded-lg shadow-lg
         bg-white dark:bg-gray-800 
         ${selected ? 'ring-2 ring-blue-500' : 'ring-1 ring-gray-200 dark:ring-gray-700'}
         transition-shadow duration-200
@@ -74,29 +46,57 @@ export const Node: React.FC<NodeData> = ({ id, position, size, data, selected })
         height: size.height,
         zIndex: selected ? 1 : 0,
       }}
-      onMouseDown={handleMouseDown}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <div className='text-sm font-medium dark:text-white'>{data.label}</div>
-      <div className='text-xs text-gray-500 dark:text-gray-400'>{data.description}</div>
+      {/* Input Handle (왼쪽) */}
+      {data.inputs?.map((input, index) => (
+        <Handle
+          key={input.id}
+          id={input.id}
+          type='target'
+          position='left'
+          nodeId={id}
+          style={{
+            top: getOutputPosition(index),
+          }}
+          isInput
+          label={input.label}
+        />
+      ))}
 
-      <Handle id={`${id}-top`} type='target' position='top' nodeId={id} />
-      <Handle id={`${id}-right`} type='source' position='right' nodeId={id} />
-      <Handle id={`${id}-bottom`} type='source' position='bottom' nodeId={id} />
-      <Handle id={`${id}-left`} type='target' position='left' nodeId={id} />
+      {/* Node Content */}
+      <div className='flex flex-col h-full'>
+        <div className='text-sm font-medium dark:text-white'>{data.label}</div>
+        {data.description && <div className='text-xs text-gray-500 dark:text-gray-400'>{data.description}</div>}
+      </div>
 
-      {/* Resize handle */}
-      <div
-        className='absolute bottom-0 right-0 w-4 h-4 cursor-se-resize'
-        onMouseDown={(e) => {
-          e.stopPropagation();
-          setIsResizing(true);
-          setDragStart({
-            x: e.clientX,
-            y: e.clientY,
-          });
-          setResizeStartSize(size);
-        }}
-      />
+      {/* Output Handles (오른쪽) */}
+      {data.outputs.map((output, index) => (
+        <Handle
+          key={output.id}
+          id={output.id}
+          type='source'
+          position='right'
+          nodeId={id}
+          style={{
+            top: getOutputPosition(index),
+          }}
+          label={output.label}
+        />
+      ))}
+
+      {/* Add Output Button */}
+      {(selected || isHovered) && (
+        <button
+          className='absolute -right-6 top-0 p-1 text-blue-500 hover:text-blue-600
+                     transition-colors duration-150 bg-white rounded-full shadow-sm'
+          onClick={handleAddOutput}
+          title='Add output'
+        >
+          <PlusCircle size={16} />
+        </button>
+      )}
     </div>
   );
 };

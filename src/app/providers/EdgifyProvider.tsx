@@ -1,9 +1,8 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useCallback, useContext, useReducer } from 'react';
 import { Background } from '@/shared/ui/Background';
 import { useKeyboard } from '@/shared/hooks/useKeyboard';
 import { layoutNodes } from '@/features/layout/lib/layoutAlgorithms';
-import { EdgifyState, EdgifyAction } from '@/shared/types/edgify.types';
-import { EdgeData, NodeData } from '@/shared/types/edgify.types';
+import { EdgeData, EdgifyAction, EdgifyState, NodeData } from '@/shared/types/edgify.types';
 
 const initialState: EdgifyState = {
   nodes: [],
@@ -184,7 +183,7 @@ export const EdgifyProvider: React.FC<{
   return (
     <EdgifyContext.Provider value={{ state, dispatch, actions }}>
       <div className='relative w-full h-full'>
-        <Background />
+        <Background scale={state.scale} />
         {children}
       </div>
     </EdgifyContext.Provider>

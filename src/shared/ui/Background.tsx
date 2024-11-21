@@ -1,16 +1,14 @@
 import React from 'react';
-import { useEdgify } from '@/app/providers/EdgifyProvider';
 
 export const Background: React.FC<{
   gridSize?: number;
   gridColor?: string;
+  scale: number;
 }> = ({
   gridSize = 20,
   gridColor = 'rgb(229, 231, 235)', // Tailwind gray-200
+  scale,
 }) => {
-  const { state } = useEdgify();
-  const { scale } = state;
-
   // Adjust grid size based on zoom level
   const adjustedGridSize = gridSize * scale;
 
