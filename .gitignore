@@ -68,3 +68,6 @@ storybook-static
 *.ipr
 *.iws
 out/
+
+# tgz
+*.tgz

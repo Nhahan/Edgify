@@ -1,12 +1,14 @@
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import typescript from 'rollup-plugin-typescript2';
-import dts from 'rollup-plugin-dts';
-import pkg from './package.json' assert { type: 'json' };
+const path = require('path');
+const resolve = require('@rollup/plugin-node-resolve').default;
+const commonjs = require('@rollup/plugin-commonjs');
+const typescript = require('rollup-plugin-typescript2');
+const pkg = require('./package.json');
+const dts = require('rollup-plugin-dts').default;
+const alias = require('@rollup/plugin-alias').default;
 
 const external = [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})];
 
-export default [
+module.exports = [
   {
     input: 'src/index.ts',
     output: [
@@ -26,6 +28,9 @@ export default [
       },
     ],
     plugins: [
+      alias({
+        entries: [{ find: '@', replacement: path.resolve(__dirname, 'src') }],
+      }),
       resolve(),
       commonjs(),
       typescript({
