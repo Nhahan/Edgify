@@ -80,7 +80,7 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
       handleDrag(nodeId, position);
     }
   };
-  console.log(55);
+
   return (
     <div
       ref={containerRef}
@@ -89,17 +89,13 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      <Background width={width} height={height} />
-      <svg className='absolute inset-0 w-full h-full' style={{ transform: `scale(${zoom})` }}>
-        {state.edges.map((edge) => (
-          <Edge key={edge.id} data={edge} />
-        ))}
-      </svg>
-      <div style={{ transform: `scale(${zoom})` }}>
-        {state.nodes.map((node) => (
-          <Node key={node.id} data={node} />
-        ))}
-      </div>
+      <Background width={width} height={height}></Background>
+      {state.edges.map((edge) => (
+        <Edge key={edge.id} data={edge} zoom={zoom} />
+      ))}
+      {state.nodes.map((node) => (
+        <Node key={node.id} data={node} zoom={zoom} />
+      ))}
       <Controller />
       <MiniMap width={width} height={height} />
     </div>

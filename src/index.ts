@@ -1,3 +1,4 @@
+import './index.css';
 export * from './features/context/EdgifyContext';
 export * from './features/context/EdgifyProvider';
 export * from './features/core/Background';

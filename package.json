@@ -1,13 +1,6 @@
 {
   "name": "edgify",
   "version": "0.1.0",
-  "dependencies": {
-    "lucide-react": "^0.460.0"
-  },
-  "peerDependencies": {
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0"
-  },
   "scripts": {
     "build": "rm -rf dist && node scripts/generate-index.js && rollup -c",
     "pack": "pnpm run build && pnpm pack",
@@ -26,7 +19,16 @@
       "default": "./dist/esm/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "lucide-react": "^0.460.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@rollup/plugin-alias": "^4.0.0",
@@ -53,6 +55,7 @@
     "prettier": "^3.3.3",
     "rollup": "^4.27.3",
     "rollup-plugin-dts": "^6.1.1",
+    "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-typescript2": "^0.36.0",
     "tailwindcss": "^3.4.15",
     "ts-node": "^10.9.2",

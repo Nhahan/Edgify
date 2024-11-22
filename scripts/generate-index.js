@@ -5,6 +5,8 @@ const path = require('path');
 const rootDir = path.resolve(__dirname, '../src');
 const indexFilePath = path.join(rootDir, 'index.ts');
 
+const prependImport = "import './index.css';\n";
+
 function getAllFiles(dir, fileList = []) {
   const files = fs.readdirSync(dir);
 
@@ -14,7 +16,7 @@ function getAllFiles(dir, fileList = []) {
 
     if (stat.isDirectory()) {
       getAllFiles(filePath, fileList);
-    } else if ((file.endsWith('.ts') || file.endsWith('.tsx')) && file !== 'index.ts') {
+    } else if ((file.endsWith('.ts') || file.endsWith('.tsx')) && file !== 'index.ts' && !file.endsWith('.d.ts')) {
       fileList.push(filePath);
     }
   });
@@ -32,7 +34,7 @@ function generateIndexFile() {
   const allFiles = getAllFiles(rootDir);
   const exportStatements = allFiles.map(makeExportPath).join('\n');
 
-  const content = `${exportStatements}\n`;
+  const content = `${prependImport}${exportStatements}\n`;
 
   fs.writeFileSync(indexFilePath, content, 'utf-8');
   console.log(`Generated ${indexFilePath} with ${allFiles.length} exports.`);

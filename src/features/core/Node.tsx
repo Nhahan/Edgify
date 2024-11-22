@@ -8,7 +8,7 @@ interface NodeProps {
   onSelect?: (nodeId: string) => void;
 }
 
-export const Node: React.FC<NodeProps> = ({ data, onSelect }) => {
+export const Node: React.FC<NodeProps & { zoom: number }> = ({ data, zoom, onSelect }) => {
   const [isHovered, setIsHovered] = useState(false);
   const { updateNodePosition, dispatch } = useEdgify();
 
@@ -47,13 +47,14 @@ export const Node: React.FC<NodeProps> = ({ data, onSelect }) => {
 
   return (
     <div
-      id={'Node' + data.id}
+      id={`Node${data.id}`}
       className='absolute p-4 bg-white rounded-lg shadow-lg cursor-move'
       style={{
         left: data.position.x,
         top: data.position.y,
         width: data.dimensions.width,
         height: data.dimensions.height,
+        transform: `scale(${zoom})`,
       }}
       draggable
       onDragStart={handleDragStart}
