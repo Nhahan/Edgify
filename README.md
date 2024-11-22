@@ -24,7 +24,7 @@ import { EdgifyProvider } from 'edgify';
 function App() {
   return (
     <EdgifyProvider>
-      <YourFlowDiagram />
+      <EdgifyDiagram />
     </EdgifyProvider>
   );
 }
@@ -33,32 +33,30 @@ function App() {
 ### 2. Create Your Flow Diagram
 
 ```tsx
-import { EdgifyCanvas, NodeData, EdgeData } from 'edgify';
+import { EdgeData, EdgifyCanvas, NodeData } from 'edgify';
 
-function FlowDiagram() {
-  // Example initial nodes
-  const initialNodes: NodeData[] = [
-    {
-      id: 'node-1',
-      type: 'default',
-      position: { x: 100, y: 100 },
-      dimensions: { width: 200, height: 100 },
-      inputs: [],
-      outputs: [
-        {
-          id: 'output-1',
-          nodeId: 'node-1',
-          type: 'output',
-          position: { x: 200, y: 50 }
-        }
-      ],
-      data: { label: 'Start Node' }
-    }
-  ];
+const initialNodes: NodeData[] = [
+  {
+    id: 'node-1',
+    type: 'default',
+    position: { x: 100, y: 100 },
+    dimensions: { width: 200, height: 100 },
+    inputs: [],
+    outputs: [
+      {
+        id: 'output-1',
+        nodeId: 'node-1',
+        type: 'output',
+        position: { x: 200, y: 50 },
+      },
+    ],
+    data: { label: 'Start Node' },
+  },
+];
 
-  // Example initial edges
-  const initialEdges: EdgeData[] = [];
+const initialEdges: EdgeData[] = [];
 
+export default function EdgifyDiagram() {
   const handleNodesChange = (nodes: NodeData[]) => {
     console.log('Nodes updated:', nodes);
   };
@@ -74,8 +72,8 @@ function FlowDiagram() {
         initialEdges={initialEdges}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
-        width={8000}  // Optional: Custom canvas width (default: 8000)
-        height={6000} // Optional: Custom canvas height (default: 6000)
+        width={800} // Optional: Custom canvas width (default: 8000)
+        height={600} // Optional: Custom canvas height (default: 6000)
       />
     </div>
   );
