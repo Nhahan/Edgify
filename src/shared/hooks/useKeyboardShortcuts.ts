@@ -2,31 +2,30 @@ import { useEffect } from 'react';
 import { useEdgify } from '@/features/context/EdgifyContext';
 
 export const useKeyboardShortcuts = () => {
-  const {
-    undo,
-    redo,
-    removeNode,
-    removeEdge,
-    state: { selectedNodes, selectedEdges },
-  } = useEdgify();
+  const { dispatch, state } = useEdgify();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
-        if (e.shiftKey) {
-          redo();
-        } else {
-          undo();
-        }
-      }
-
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        selectedNodes.forEach((nodeId) => removeNode(nodeId));
-        selectedEdges.forEach((edgeId) => removeEdge(edgeId));
+        // remove selected node
+        state.selectedNodes.forEach((nodeId) => {
+          dispatch({
+            type: 'REMOVE_NODE',
+            payload: nodeId,
+          });
+        });
+
+        // remove selected edge
+        state.selectedEdges.forEach((edgeId) => {
+          dispatch({
+            type: 'REMOVE_EDGE',
+            payload: edgeId,
+          });
+        });
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, removeNode, removeEdge, selectedNodes, selectedEdges]);
+  }, [dispatch, state.selectedNodes, state.selectedEdges]);
 };

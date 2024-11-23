@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { PlusCircle, Save, Settings } from 'lucide-react';
+import React from 'react';
+import { PlusCircle, Save, Settings, ZoomIn, ZoomOut } from 'lucide-react';
 import { useEdgify } from '@/features/context/EdgifyContext';
 import { useZoom } from '@/shared/hooks/useZoom';
 
@@ -10,26 +10,26 @@ interface ControlButton {
 }
 
 export const Controller: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
   const { addNode } = useEdgify();
-  const { zoom } = useZoom();
+  const { handleZoom } = useZoom();
 
   const handleAddNode = () => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const centerX = (containerRef.current.scrollLeft + rect.width / 2) / zoom;
-      const centerY = (containerRef.current.scrollTop + rect.height / 2) / zoom;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
 
-      // id는 addNode 내부에서 생성되므로 제외
-      addNode({
-        type: 'default',
-        position: { x: centerX, y: centerY },
-        dimensions: { width: 200, height: 100 },
-        inputs: [],
-        outputs: [],
-        data: { label: 'New Node' },
-      });
-    }
+    const centerX = scrollX + viewportWidth / 2;
+    const centerY = scrollY + viewportHeight / 2;
+
+    addNode({
+      type: 'default',
+      position: { x: centerX, y: centerY },
+      inputs: [],
+      dimensions: { width: 1, height: 1 },
+      outputs: [],
+      data: { label: 'New Node' },
+    });
   };
 
   const buttons: ControlButton[] = [
@@ -37,6 +37,16 @@ export const Controller: React.FC = () => {
       icon: <PlusCircle className='w-5 h-5' />,
       label: 'Add Node',
       onClick: handleAddNode,
+    },
+    {
+      icon: <ZoomIn className='w-5 h-5' />,
+      label: 'Zoom In',
+      onClick: () => handleZoom(1),
+    },
+    {
+      icon: <ZoomOut className='w-5 h-5' />,
+      label: 'Zoom Out',
+      onClick: () => handleZoom(-1),
     },
     // Buttons for future expansion
     {
@@ -52,7 +62,7 @@ export const Controller: React.FC = () => {
   ];
 
   return (
-    <div id='Controller' className='absolute top-4 left-4 flex flex-col gap-2 bg-white rounded-lg shadow-lg p-2 z-30'>
+    <div id='Controller' className='fixed top-4 left-4 flex flex-col gap-2 bg-white rounded-lg shadow-lg p-2 z-30'>
       {buttons.map((button, index) => (
         <button
           key={index}

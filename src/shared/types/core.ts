@@ -51,6 +51,7 @@ export type EdgifyState = {
   selectedNodes: string[];
   selectedEdges: string[];
   viewport: ViewportState;
+  previewInputs: Record<string, HandleData>;
 };
 
 export type ActionType =
@@ -61,5 +62,9 @@ export type ActionType =
   | { type: 'UPDATE_NODE_POSITION'; payload: { nodeId: string; position: Position } }
   | { type: 'UPDATE_NODE'; payload: NodeData }
   | { type: 'UPDATE_ZOOM'; payload: number }
+  | { type: 'SELECT_NODE'; payload: string }
+  | { type: 'SELECT_EDGE'; payload: string }
+  | { type: 'ADD_PREVIEW_INPUT'; payload: { nodeId: string } }
+  | { type: 'REMOVE_PREVIEW_INPUT'; payload: string }
   | { type: 'UNDO' }
   | { type: 'REDO' };

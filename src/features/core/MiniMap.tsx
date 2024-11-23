@@ -18,7 +18,7 @@ export const MiniMap: React.FC<MiniMapProps> = ({ width, height }) => {
   return (
     <div
       id='MiniMap'
-      className='absolute bottom-4 right-4 bg-white rounded-lg shadow-lg p-2 z-30'
+      className='fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-2 z-30'
       style={{
         width: `${miniMapWidth}px`,
         height: `${miniMapHeight}px`,

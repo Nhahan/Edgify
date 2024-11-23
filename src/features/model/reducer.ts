@@ -1,6 +1,5 @@
-import { ActionType, EdgeData, EdgifyState, HistoryState, NodeData } from '@/shared/types/core';
+import { ActionType, EdgeData, EdgifyState, HandleData, HistoryState, NodeData } from '@/shared/types/core';
 
-// 유효성 검사 함수들
 const validateNode = (node: NodeData): string | null => {
   if (!node.id) return 'Node ID is required';
   if (!node.position) return 'Node position is required';
@@ -40,6 +39,7 @@ const addToHistory = (
         selectedNodes: nextState.selectedNodes,
         selectedEdges: nextState.selectedEdges,
         viewport: nextState.viewport,
+        previewInputs: nextState.previewInputs,
       },
       future: [],
     },
@@ -52,6 +52,50 @@ export const edgifyReducer = (
 ): EdgifyState & { history: HistoryState } => {
   try {
     switch (action.type) {
+      case 'SELECT_NODE': {
+        return {
+          ...state,
+          selectedNodes: [action.payload],
+          selectedEdges: [], // deselect edges when selecting a node
+        };
+      }
+      case 'SELECT_EDGE': {
+        return {
+          ...state,
+          selectedEdges: [action.payload],
+          selectedNodes: [], // deselect nodes when selecting an edge
+        };
+      }
+      case 'ADD_PREVIEW_INPUT': {
+        const targetNode = state.nodes.find((node) => node.id === action.payload.nodeId);
+        if (!targetNode) return state;
+
+        const previewInput: HandleData = {
+          id: `preview-${Date.now()}`,
+          nodeId: targetNode.id,
+          type: 'input',
+          position: {
+            x: 0,
+            y: (targetNode.inputs.length + 1) * 30,
+          },
+        };
+
+        return {
+          ...state,
+          previewInputs: {
+            ...state.previewInputs,
+            [targetNode.id]: previewInput,
+          },
+        };
+      }
+      case 'REMOVE_PREVIEW_INPUT': {
+        const previews = { ...state.previewInputs };
+        delete previews[action.payload];
+        return {
+          ...state,
+          previewInputs: previews,
+        };
+      }
       case 'UNDO': {
         if (state.history.past.length === 0) return state;
         const previous = state.history.past[state.history.past.length - 1];
@@ -66,7 +110,6 @@ export const edgifyReducer = (
           },
         };
       }
-
       case 'REDO': {
         if (state.history.future.length === 0) return state;
         const next = state.history.future[0];
@@ -81,7 +124,6 @@ export const edgifyReducer = (
           },
         };
       }
-
       case 'ADD_NODE':
       case 'REMOVE_NODE':
       case 'ADD_EDGE':
@@ -111,7 +153,6 @@ const handleStateUpdate = (state: EdgifyState, action: ActionType): EdgifyState 
         return null;
       }
 
-      // 중복 검사
       const isDuplicate = state.nodes.some((node) => node.id === action.payload.id);
       if (isDuplicate) {
         console.error(`Node with ID ${action.payload.id} already exists`);
@@ -131,14 +172,12 @@ const handleStateUpdate = (state: EdgifyState, action: ActionType): EdgifyState 
         return null;
       }
 
-      // 중복 검사
       const isDuplicate = state.edges.some((edge) => edge.id === action.payload.id);
       if (isDuplicate) {
         console.error(`Edge with ID ${action.payload.id} already exists`);
         return null;
       }
 
-      // 동일한 연결이 이미 존재하는지 검사
       const duplicateConnection = state.edges.some(
         (edge) =>
           edge.source === action.payload.source &&
@@ -151,12 +190,30 @@ const handleStateUpdate = (state: EdgifyState, action: ActionType): EdgifyState 
         return null;
       }
 
+      // find target node and add new input
+      const targetNode = state.nodes.find((node) => node.id === action.payload.target);
+      if (!targetNode) return null;
+
+      const newInput: HandleData = {
+        id: action.payload.targetHandle,
+        nodeId: targetNode.id,
+        type: 'input',
+        position: {
+          x: 0,
+          y: (targetNode.inputs.length + 1) * 30,
+        },
+      };
+
+      // update target node with new input and add edge
       return {
         ...state,
+        nodes: state.nodes.map((node) =>
+          node.id === targetNode.id ? { ...node, inputs: [...node.inputs, newInput] } : node,
+        ),
         edges: [...state.edges, action.payload],
+        previewInputs: {}, // clear any preview inputs
       };
     }
-
     case 'REMOVE_NODE': {
       const nodeExists = state.nodes.some((node) => node.id === action.payload);
       if (!nodeExists) {

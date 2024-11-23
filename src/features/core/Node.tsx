@@ -5,34 +5,52 @@ import { useEdgify } from '@/features/context/EdgifyContext';
 
 interface NodeProps {
   data: NodeData;
-  onSelect?: (nodeId: string) => void;
+  zoom: number;
 }
 
-export const Node: React.FC<NodeProps & { zoom: number }> = ({ data, zoom, onSelect }) => {
+export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const { updateNodePosition, dispatch } = useEdgify();
+  const { dispatch, state } = useEdgify();
+  const isSelected = state.selectedNodes.includes(data.id);
+  const [previewInput, setPreviewInput] = useState<HandleData | null>(null);
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    e.dataTransfer.setData('nodeId', data.id);
-  };
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
 
-  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
-    if (e.clientX && e.clientY) {
-      updateNodePosition(data.id, {
-        x: e.clientX,
-        y: e.clientY,
+    // add preview input
+    if (!previewInput) {
+      setPreviewInput({
+        id: `preview-input-${Date.now()}`,
+        nodeId: data.id,
+        type: 'input',
+        position: {
+          x: 0,
+          y: (data.inputs.length + 1) * 30,
+        },
       });
     }
   };
 
-  const handleAddOutput = () => {
+  const handleDragLeave = () => {
+    setPreviewInput(null);
+  };
+
+  const handleClick = () => {
+    dispatch({
+      type: 'SELECT_NODE',
+      payload: data.id,
+    });
+  };
+
+  const handleAddEdge = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const newOutput: HandleData = {
       id: `output-${Date.now()}`,
       nodeId: data.id,
       type: 'output',
       position: {
         x: data.dimensions.width,
-        y: (data.outputs.length + 1) * 30, // 30px spacing
+        y: (data.outputs.length + 1) * 30,
       },
     };
 
@@ -45,43 +63,64 @@ export const Node: React.FC<NodeProps & { zoom: number }> = ({ data, zoom, onSel
     });
   };
 
+  const handleRemoveEdge = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // remove last output
+    if (data.outputs.length > 0) {
+      dispatch({
+        type: 'UPDATE_NODE',
+        payload: {
+          ...data,
+          outputs: data.outputs.slice(0, -1),
+        },
+      });
+    }
+  };
+
   return (
     <div
-      id={`Node${data.id}`}
-      className='absolute p-4 bg-white rounded-lg shadow-lg cursor-move'
+      className={`absolute p-4 bg-white rounded-lg shadow-lg cursor-move
+        ${isSelected ? 'ring-2 ring-blue-500' : ''}
+        ${isHovered ? 'ring-1 ring-gray-300' : ''}`}
       style={{
         left: data.position.x,
         top: data.position.y,
-        width: data.dimensions.width,
-        height: data.dimensions.height,
-        transform: `scale(${zoom})`,
+        width: data.dimensions.width * zoom,
+        height: data.dimensions.height * zoom,
       }}
-      draggable
-      onDragStart={handleDragStart}
-      onDrag={handleDrag}
+      onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={() => onSelect?.(data.id)}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
     >
       <>
+        {/* existing inputs */}
         {data.inputs.map((input) => (
           <Handle key={input.id} data={input} type='input' />
         ))}
+        {/* preview inputs */}
+        {previewInput && <Handle data={previewInput} type='input' isPreview={true} />}
+        {/* existing outputs */}
         {data.outputs.map((output) => (
           <Handle key={output.id} data={output} type='output' />
         ))}
-        {isHovered && (
-          <button
-            className='absolute top-2 right-2 p-1 bg-blue-500 text-white rounded-full'
-            onClick={(e) => {
-              e.stopPropagation();
-              handleAddOutput();
-            }}
-          >
-            +
-          </button>
+        {(isHovered || isSelected) && (
+          <>
+            <button
+              className='absolute -right-3 -top-3 w-6 h-6 bg-blue-500 text-white rounded-full'
+              onClick={handleAddEdge}
+            >
+              +
+            </button>
+            <button
+              className='absolute -right-3 -bottom-3 w-6 h-6 bg-red-500 text-white rounded-full'
+              onClick={handleRemoveEdge}
+            >
+              -
+            </button>
+          </>
         )}
-        {data.data?.label && <div className='text-center font-medium'>{String(data.data.label)}</div>}
       </>
     </div>
   );
