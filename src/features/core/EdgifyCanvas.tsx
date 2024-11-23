@@ -12,8 +12,7 @@ import { useStateUpdate } from '@/shared/hooks/useStateUpdate';
 import { Controller } from '@/features/core/Controller';
 
 interface EdgifyProps {
-  initialNodes?: NodeData[];
-  initialEdges?: EdgeData[];
+  initializeNode?: boolean;
   onNodesChange?: (nodes: NodeData[]) => void;
   onEdgesChange?: (edges: EdgeData[]) => void;
   width?: number;
@@ -21,19 +20,42 @@ interface EdgifyProps {
 }
 
 export const EdgifyCanvas: React.FC<EdgifyProps> = ({
-  initialNodes = [],
-  initialEdges = [],
+  initializeNode = true,
   onNodesChange,
   onEdgesChange,
-  width = 8000,
-  height = 6000,
+  width = 4000,
+  height = 3000,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { zoom, handleZoom } = useZoom();
   const { handleDrag } = useDragAndDrop();
-  const { state, addNode, addEdge } = useEdgify();
+  const { state, addNode } = useEdgify();
   const { debouncedNodesUpdate, debouncedEdgesUpdate } = useStateUpdate(onNodesChange, onEdgesChange);
   useKeyboardShortcuts();
+
+  // Initialize first node if initializeNode is true
+  useEffect(() => {
+    if (initializeNode) {
+      const defaultDimensions = {
+        width: 200,
+        height: 100,
+      };
+
+      // Calculate center position
+      const centerX = width / 2 - defaultDimensions.width / 2;
+      const centerY = height / 2 - defaultDimensions.height / 2;
+
+      // Add initial node
+      addNode({
+        type: 'default',
+        position: { x: centerX, y: centerY },
+        dimensions: defaultDimensions,
+        inputs: [],
+        outputs: [],
+        data: { label: 'New Node' },
+      });
+    }
+  }, [initializeNode]);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -51,11 +73,6 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
   useEffect(() => {
     debouncedEdgesUpdate(state.edges);
   }, [state.edges, debouncedEdgesUpdate]);
-
-  useEffect(() => {
-    initialNodes.forEach(addNode);
-    initialEdges.forEach(addEdge);
-  }, []);
 
   const handleWheel = (e: React.WheelEvent) => {
     if (e.ctrlKey || e.metaKey) {
@@ -91,7 +108,7 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
     >
       <Background width={width} height={height}></Background>
       {state.edges.map((edge) => (
-        <Edge key={edge.id} data={edge} zoom={zoom} />
+        <Edge key={edge.id} data={edge} />
       ))}
       {state.nodes.map((node) => (
         <Node key={node.id} data={node} zoom={zoom} />
