@@ -43,10 +43,15 @@ module.exports = [
         extensions: ['.js', '.jsx', '.ts', '.tsx'],
       }),
       postcss({
-        extract: true,
+        config: {
+          path: './postcss.config.js',
+        },
+        plugins: [tailwindcss('./tailwind.config.js'), autoprefixer()],
+        inject: true,
+        extract: false,
         minimize: true,
-        sourceMap: true,
-        plugins: [tailwindcss(), autoprefixer()],
+        modules: false,
+        autoModules: false,
       }),
       commonjs(),
     ],

@@ -20,7 +20,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "dist/index.css"
   ],
   "dependencies": {
     "lucide-react": "^0.460.0"
