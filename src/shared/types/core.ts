@@ -68,3 +68,5 @@ export type ActionType =
   | { type: 'REMOVE_PREVIEW_INPUT'; payload: string }
   | { type: 'UNDO' }
   | { type: 'REDO' };
+
+export type NodeResizeCursorType = 'se-resize' | 'e-resize' | 's-resize' | 'move';

@@ -58,6 +58,7 @@ export const Handle: React.FC<HandleProps> = ({ data, type, isPreview = false })
 
   return (
     <div
+      id={`handle-${data.id}`}
       ref={handleRef}
       className={`absolute ${type === 'input' ? 'left-0' : 'right-0'} w-3 h-3 
         ${isPreview ? 'opacity-50' : ''} 
