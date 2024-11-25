@@ -8,7 +8,7 @@ interface BackgroundProps {
 
 export const Background: React.FC<BackgroundProps> = ({ width, height }) => {
   const { state } = useEdgify();
-  const { zoom } = state.viewport;
+  const zoom = state.history.present.viewport.zoom;
 
   return (
     <svg

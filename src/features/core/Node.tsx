@@ -25,7 +25,8 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
   } | null>(null);
   const [previewInput, setPreviewInput] = useState<HandleData | null>(null);
   const { dispatch, state } = useEdgify();
-  const isSelected = state.selectedNodes.includes(data.id);
+  const edgifyState = state.history.present;
+  const isSelected = edgifyState.selectedNodes.includes(data.id);
 
   const [dragStart, setDragStart] = useState<{
     mouseX: number;
@@ -214,12 +215,15 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
   // handle connection preview
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const sourceNodeId = e.dataTransfer.getData('sourceNodeId');
+    const sourceHandleDataString = e.dataTransfer.getData('sourceHandle');
+    if (!sourceHandleDataString) return;
+
+    const sourceHandleData = JSON.parse(sourceHandleDataString);
 
     // prevent self-connection
-    if (sourceNodeId === data.id) return;
+    if (sourceHandleData.nodeId === data.id) return;
 
-    if (!previewInput && sourceNodeId !== data.id) {
+    if (!previewInput) {
       setPreviewInput({
         id: `preview-input-${Date.now()}`,
         nodeId: data.id,
@@ -290,7 +294,7 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
 
   // Check for unconnected outputs
   const hasUnconnectedOutput = data.outputs.some(
-    (output) => !state.edges.some((edge) => edge.sourceHandle === output.id),
+    (output) => !edgifyState.edges.some((edge) => edge.source === data.id && edge.sourceHandle === output.id),
   );
 
   // resize cursor styles based on border position

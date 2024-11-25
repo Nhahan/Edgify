@@ -10,6 +10,7 @@ import { Node } from '@/features/core/Node';
 import { useEdgify } from '@/features/context/EdgifyContext';
 import { useStateUpdate } from '@/shared/hooks/useStateUpdate';
 import { Controller } from '@/features/core/Controller';
+import { EdgePreview } from '@/features/core/EdgePreview';
 
 interface EdgifyProps {
   initializeNode?: boolean;
@@ -30,12 +31,13 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
   const { zoom, handleZoom } = useZoom();
   const { handleDrag } = useDragAndDrop();
   const { state, addNode } = useEdgify();
+  const edgifyState = state.history.present;
   const { debouncedNodesUpdate, debouncedEdgesUpdate } = useStateUpdate(onNodesChange, onEdgesChange);
   useKeyboardShortcuts();
 
   // Initialize first node if initializeNode is true
   useEffect(() => {
-    if (initializeNode) {
+    if (initializeNode && edgifyState.nodes.length === 0) {
       const defaultDimensions = {
         width: 200,
         height: 100,
@@ -55,7 +57,7 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
         data: { label: 'New Node' },
       });
     }
-  }, [initializeNode]);
+  }, []);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -67,12 +69,12 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
   }, [width, height]);
 
   useEffect(() => {
-    debouncedNodesUpdate(state.nodes);
-  }, [state.nodes, debouncedNodesUpdate]);
+    debouncedNodesUpdate(edgifyState.nodes);
+  }, [edgifyState.nodes, debouncedNodesUpdate]);
 
   useEffect(() => {
-    debouncedEdgesUpdate(state.edges);
-  }, [state.edges, debouncedEdgesUpdate]);
+    debouncedEdgesUpdate(edgifyState.edges);
+  }, [edgifyState.edges, debouncedEdgesUpdate]);
 
   const handleWheel = (e: React.WheelEvent) => {
     if (e.ctrlKey || e.metaKey) {
@@ -106,13 +108,31 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      <Background width={width} height={height}></Background>
-      {state.edges.map((edge) => (
-        <Edge key={edge.id} data={edge} />
-      ))}
-      {state.nodes.map((node) => (
+      <Background width={width} height={height} />
+
+      {/* Render edges and edge preview */}
+      <svg
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          width: width,
+          height: height,
+          pointerEvents: 'none',
+          overflow: 'visible',
+        }}
+      >
+        {edgifyState.edges.map((edge) => (
+          <Edge key={edge.id} data={edge} />
+        ))}
+        {edgifyState.edgePreview && <EdgePreview preview={edgifyState.edgePreview} />}
+      </svg>
+
+      {/* Render nodes */}
+      {edgifyState.nodes.map((node) => (
         <Node key={node.id} data={node} zoom={zoom} />
       ))}
+
       <Controller />
       <MiniMap width={width} height={height} />
     </div>

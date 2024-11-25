@@ -4,6 +4,7 @@ export * from './features/context/EdgifyProvider';
 export * from './features/core/Background';
 export * from './features/core/Controller';
 export * from './features/core/Edge';
+export * from './features/core/EdgePreview';
 export * from './features/core/EdgifyCanvas';
 export * from './features/core/Handle';
 export * from './features/core/MiniMap';

@@ -1,7 +1,7 @@
-import React from 'react';
-import { EdgeData, NodeData, Position } from '@/shared/types/core';
+import { Dispatch } from 'react';
+import { ActionType, EdgeData, NodeData, Position, EdgePreviewData } from '@/shared/types/core';
 
-export const createActions = (dispatch: React.Dispatch<any>) => ({
+export const createActions = (dispatch: Dispatch<ActionType>) => ({
   addNode: (node: Omit<NodeData, 'id'>) => {
     dispatch({
       type: 'ADD_NODE',
@@ -49,6 +49,38 @@ export const createActions = (dispatch: React.Dispatch<any>) => ({
       type: 'UPDATE_ZOOM',
       payload: zoom,
     });
+  },
+
+  selectNode: (nodeId: string) => {
+    dispatch({
+      type: 'SELECT_NODE',
+      payload: nodeId,
+    });
+  },
+
+  selectEdge: (edgeId: string) => {
+    dispatch({
+      type: 'SELECT_EDGE',
+      payload: edgeId,
+    });
+  },
+
+  startEdgePreview: (previewData: EdgePreviewData) => {
+    dispatch({
+      type: 'START_EDGE_PREVIEW',
+      payload: previewData,
+    });
+  },
+
+  updateEdgePreview: (position: Position) => {
+    dispatch({
+      type: 'UPDATE_EDGE_PREVIEW',
+      payload: position,
+    });
+  },
+
+  endEdgePreview: () => {
+    dispatch({ type: 'END_EDGE_PREVIEW' });
   },
 
   undo: () => {

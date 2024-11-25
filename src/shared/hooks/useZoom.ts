@@ -1,17 +1,14 @@
-import { useCallback } from 'react';
+// useZoom.ts
 import { useEdgify } from '@/features/context/EdgifyContext';
 
 export const useZoom = () => {
-  const { state, updateZoom } = useEdgify();
-  const { zoom } = state.viewport;
+  const { updateZoom, state } = useEdgify();
+  const zoom = state.history.present.viewport.zoom;
 
-  const handleZoom = useCallback(
-    (delta: number) => {
-      const newZoom = Math.max(0.1, Math.min(2, zoom + delta * 0.1));
-      updateZoom(newZoom);
-    },
-    [zoom, updateZoom],
-  );
+  const handleZoom = (delta: number) => {
+    const newZoom = zoom + delta * 0.1;
+    updateZoom(newZoom);
+  };
 
   return { zoom, handleZoom };
 };

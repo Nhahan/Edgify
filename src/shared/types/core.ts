@@ -1,3 +1,5 @@
+// types.ts (or core.ts)
+
 export type Position = {
   x: number;
   y: number;
@@ -6,6 +8,13 @@ export type Position = {
 export type Dimensions = {
   width: number;
   height: number;
+};
+
+export type HandleData = {
+  id: string;
+  nodeId: string;
+  type: 'input' | 'output';
+  position: Position;
 };
 
 export type NodeData = {
@@ -18,13 +27,6 @@ export type NodeData = {
   data?: Record<string, unknown>;
 };
 
-export type HandleData = {
-  id: string;
-  nodeId: string;
-  type: 'input' | 'output';
-  position: Position;
-};
-
 export type EdgeData = {
   id: string;
   source: string;
@@ -32,6 +34,7 @@ export type EdgeData = {
   target: string;
   targetHandle: string;
   type?: string;
+  color?: string;
 };
 
 export type ViewportState = {
@@ -39,10 +42,11 @@ export type ViewportState = {
   position: Position;
 };
 
-export type HistoryState = {
-  past: EdgifyState[];
-  present: EdgifyState;
-  future: EdgifyState[];
+export type EdgePreviewData = {
+  sourceNodeId: string;
+  sourceHandleId: string;
+  fromPosition: Position;
+  toPosition: Position;
 };
 
 export type EdgifyState = {
@@ -52,6 +56,17 @@ export type EdgifyState = {
   selectedEdges: string[];
   viewport: ViewportState;
   previewInputs: Record<string, HandleData>;
+  edgePreview: EdgePreviewData | null;
+};
+
+export type HistoryState = {
+  past: EdgifyState[];
+  present: EdgifyState;
+  future: EdgifyState[];
+};
+
+export type StoreState = {
+  history: HistoryState;
 };
 
 export type ActionType =
@@ -64,8 +79,9 @@ export type ActionType =
   | { type: 'UPDATE_ZOOM'; payload: number }
   | { type: 'SELECT_NODE'; payload: string }
   | { type: 'SELECT_EDGE'; payload: string }
-  | { type: 'ADD_PREVIEW_INPUT'; payload: { nodeId: string } }
-  | { type: 'REMOVE_PREVIEW_INPUT'; payload: string }
+  | { type: 'START_EDGE_PREVIEW'; payload: EdgePreviewData }
+  | { type: 'UPDATE_EDGE_PREVIEW'; payload: Position }
+  | { type: 'END_EDGE_PREVIEW' }
   | { type: 'UNDO' }
   | { type: 'REDO' };
 
