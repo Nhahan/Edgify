@@ -19,6 +19,13 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
   const { dispatch, state } = useEdgify();
   const isSelected = state.selectedNodes.includes(data.id);
 
+  const [dragStart, setDragStart] = useState<{
+    mouseX: number;
+    mouseY: number;
+    nodeX: number;
+    nodeY: number;
+  } | null>(null);
+
   // calculate vertical center position for handles
   const calculateHandlePosition = () => {
     return data.dimensions.height / 2;
@@ -49,33 +56,81 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
     }
   }, [data.inputs.length, data.outputs.length]);
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    setIsDragging(true);
-    e.dataTransfer.setData('nodeId', data.id);
-  };
-
-  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
-    if (isDragging && e.clientX && e.clientY && nodeRef.current) {
-      const containerRect = nodeRef.current.parentElement?.getBoundingClientRect();
-      if (!containerRect) return;
-
-      // Calculate position relative to the container
-      const x = (e.clientX - containerRect.left) / zoom;
-      const y = (e.clientY - containerRect.top) / zoom;
-
-      dispatch({
-        type: 'UPDATE_NODE_POSITION',
-        payload: {
-          nodeId: data.id,
-          position: { x, y },
-        },
-      });
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const newCursor = getBorderCursor(e);
+    if (newCursor !== 'move') {
+      e.preventDefault(); // prevent text selection
+      e.stopPropagation();
+      setIsResizing(true);
+      setResizeDirection(newCursor.split('-')[0]);
+      return;
     }
+
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+
+    const background = document.getElementById('Background');
+    if (!background || !background.parentElement) return;
+
+    const containerRect = background.parentElement.getBoundingClientRect();
+
+    const mouseX = e.clientX - containerRect.left + background.parentElement.scrollLeft;
+    const mouseY = e.clientY - containerRect.top + background.parentElement.scrollTop;
+
+    const nodeX = data.position.x;
+    const nodeY = data.position.y;
+
+    setDragStart({ mouseX, mouseY, nodeX, nodeY });
   };
 
-  const handleDragEnd = () => {
-    setIsDragging(false);
-  };
+  useEffect(() => {
+    if (isDragging) {
+      const handleMouseMove = (e: MouseEvent) => {
+        if (nodeRef.current && dragStart) {
+          const background = document.getElementById('Background');
+          if (!background || !background.parentElement) return;
+
+          const containerRect = background.parentElement.getBoundingClientRect();
+
+          const mouseX = e.clientX - containerRect.left + background.parentElement.scrollLeft;
+          const mouseY = e.clientY - containerRect.top + background.parentElement.scrollTop;
+
+          const deltaX = (mouseX - dragStart.mouseX) / zoom;
+          const deltaY = (mouseY - dragStart.mouseY) / zoom;
+
+          const newX = dragStart.nodeX + deltaX;
+          const newY = dragStart.nodeY + deltaY;
+
+          dispatch({
+            type: 'UPDATE_NODE_POSITION',
+            payload: {
+              nodeId: data.id,
+              position: {
+                x: newX,
+                y: newY,
+              },
+            },
+          });
+        }
+      };
+
+      const handleMouseUp = () => {
+        setIsDragging(false);
+        setDragStart(null);
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragStart, zoom, dispatch, data.id]);
 
   const handleResize = useCallback(
     (e: MouseEvent) => {
@@ -101,7 +156,7 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
         });
       }
     },
-    [isResizing, resizeDirection, zoom, data],
+    [isResizing, resizeDirection, zoom, data, dispatch],
   );
 
   const handleResizeEnd = useCallback(() => {
@@ -215,26 +270,15 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isResizing) {
+    if (!isResizing && !isDragging) {
       const newCursor = getBorderCursor(e);
       setCursor(newCursor);
-    }
-  };
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    const newCursor = getBorderCursor(e);
-    if (newCursor !== 'move') {
-      e.preventDefault(); // prevent drag start
-      e.stopPropagation();
-      setIsResizing(true);
-      setResizeDirection(newCursor.split('-')[0]);
     }
   };
 
   return (
     <div
       ref={nodeRef}
-      draggable={!isResizing} // only draggable when not resizing
       className={`absolute bg-white rounded-lg shadow-lg
         ${isSelected ? 'ring-2 ring-blue-500' : ''}
         ${isHovered ? 'ring-1 ring-gray-300' : ''}`}
@@ -248,12 +292,9 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
         padding: '20px',
         cursor: cursor,
       }}
-      onDragStart={handleDragStart}
-      onDrag={handleDrag}
-      onDragEnd={handleDragEnd}
       onClick={handleClick}
-      onMouseMove={handleMouseMove}
       onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onDragOver={handleDragOver}
@@ -292,21 +333,30 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
           />
         ))}
 
-        {/* control buttons - only shown on hover */}
-        {isHovered && !isSelected && (
-          <div
-            className='absolute right-0 -top-12 flex flex-col items-center gap-2'
-            style={{ transform: `scale(${1 / zoom})` }}
-          >
-            {' '}
-            {/* counter zoom effect */}
-            <button className='w-6 h-6 bg-blue-500 text-white rounded-full hover:bg-blue-600' onClick={handleAddEdge}>
-              +
-            </button>
-            <button className='w-6 h-6 bg-red-500 text-white rounded-full hover:bg-red-600' onClick={handleRemoveEdge}>
-              -
-            </button>
-          </div>
+        {/* control buttons - shown when hovered or selected */}
+        {(isHovered || isSelected) && (
+          <>
+            <div
+              className='absolute right-0 -top-8 flex flex-col items-center h-12'
+              style={{ transform: `scale(${1 / zoom})` }}
+            >
+              {/* counter zoom effect */}
+              <button className='w-6 h-6 bg-blue-500 text-white rounded-full hover:bg-blue-600' onClick={handleAddEdge}>
+                +
+              </button>
+            </div>
+            <div
+              className='absolute right-0 -bottom-8 flex flex-col-reverse items-center h-12'
+              style={{ transform: `scale(${1 / zoom})` }}
+            >
+              <button
+                className='w-6 h-6 bg-red-500 text-white rounded-full hover:bg-red-600'
+                onClick={handleRemoveEdge}
+              >
+                -
+              </button>
+            </div>
+          </>
         )}
 
         {/* node label */}
