@@ -49,7 +49,6 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
     }
   }, [data.inputs.length, data.outputs.length]);
 
-  // drag functionality
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     setIsDragging(true);
     e.dataTransfer.setData('nodeId', data.id);
@@ -57,19 +56,18 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
 
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
     if (isDragging && e.clientX && e.clientY && nodeRef.current) {
-      const rect = nodeRef.current.getBoundingClientRect();
-      // calculate offset from the node's center
-      const offsetX = rect.width / 2;
-      const offsetY = rect.height / 2;
+      const containerRect = nodeRef.current.parentElement?.getBoundingClientRect();
+      if (!containerRect) return;
+
+      // Calculate position relative to the container
+      const x = (e.clientX - containerRect.left) / zoom;
+      const y = (e.clientY - containerRect.top) / zoom;
 
       dispatch({
         type: 'UPDATE_NODE_POSITION',
         payload: {
           nodeId: data.id,
-          position: {
-            x: (e.clientX - offsetX) / zoom,
-            y: (e.clientY - offsetY) / zoom,
-          },
+          position: { x, y },
         },
       });
     }
