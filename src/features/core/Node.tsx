@@ -15,6 +15,14 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [cursor, setCursor] = useState<NodeResizeCursorType>('move');
   const [resizeDirection, setResizeDirection] = useState<string | null>(null);
+  const [resizeStart, setResizeStart] = useState<{
+    mouseX: number;
+    mouseY: number;
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+  } | null>(null);
   const [previewInput, setPreviewInput] = useState<HandleData | null>(null);
   const { dispatch, state } = useEdgify();
   const isSelected = state.selectedNodes.includes(data.id);
@@ -62,7 +70,17 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
       e.preventDefault(); // prevent text selection
       e.stopPropagation();
       setIsResizing(true);
-      setResizeDirection(newCursor.split('-')[0]);
+      setResizeDirection(newCursor);
+
+      // Store initial positions for resizing
+      setResizeStart({
+        mouseX: e.clientX,
+        mouseY: e.clientY,
+        width: data.dimensions.width,
+        height: data.dimensions.height,
+        x: data.position.x,
+        y: data.position.y,
+      });
       return;
     }
 
@@ -134,34 +152,52 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
 
   const handleResize = useCallback(
     (e: MouseEvent) => {
-      if (isResizing && nodeRef.current) {
-        const rect = nodeRef.current.getBoundingClientRect();
-        let newWidth = data.dimensions.width;
-        let newHeight = data.dimensions.height;
+      if (resizeDirection !== null && isResizing && nodeRef.current && resizeStart) {
+        const minWidth = 100; // minimum width
         const minHeight = calculateMinHeight();
+        let newWidth = resizeStart.width;
+        let newHeight = resizeStart.height;
+        let newX = resizeStart.x;
+        let newY = resizeStart.y;
 
-        if (resizeDirection?.includes('e')) {
-          newWidth = Math.max(1000, (e.clientX - rect.left) / zoom);
+        const deltaX = (e.clientX - resizeStart.mouseX) / zoom;
+        const deltaY = (e.clientY - resizeStart.mouseY) / zoom;
+
+        if (resizeDirection.includes('e')) {
+          newWidth = Math.max(minWidth, resizeStart.width + deltaX);
         }
-        if (resizeDirection?.includes('s')) {
-          newHeight = Math.max(minHeight, (e.clientY - rect.top) / zoom);
+        if (resizeDirection.includes('s')) {
+          newHeight = Math.max(minHeight, resizeStart.height + deltaY);
+        }
+        if (resizeDirection.includes('w')) {
+          newWidth = Math.max(minWidth, resizeStart.width - deltaX);
+          newX = resizeStart.x + deltaX;
+        }
+        if (resizeDirection.includes('n')) {
+          newHeight = Math.max(minHeight, resizeStart.height - deltaY);
+          newY = resizeStart.y + deltaY;
         }
 
         dispatch({
           type: 'UPDATE_NODE',
           payload: {
             ...data,
+            position: {
+              x: newX,
+              y: newY,
+            },
             dimensions: { width: newWidth, height: newHeight },
           },
         });
       }
     },
-    [isResizing, resizeDirection, zoom, data, dispatch],
+    [isResizing, resizeDirection, zoom, data, dispatch, resizeStart],
   );
 
   const handleResizeEnd = useCallback(() => {
     setIsResizing(false);
     setResizeDirection(null);
+    setResizeStart(null);
   }, []);
 
   useEffect(() => {
@@ -203,6 +239,7 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
   // node selection
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isResizing) return; // Don't select node when resizing
     dispatch({
       type: 'SELECT_NODE',
       payload: data.id,
@@ -251,6 +288,11 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
     }
   };
 
+  // Check for unconnected outputs
+  const hasUnconnectedOutput = data.outputs.some(
+    (output) => !state.edges.some((edge) => edge.sourceHandle === output.id),
+  );
+
   // resize cursor styles based on border position
   const getBorderCursor = (e: React.MouseEvent<HTMLDivElement>): NodeResizeCursorType => {
     if (!nodeRef.current) return 'move';
@@ -260,11 +302,18 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
+    const onLeftBorder = x < border;
     const onRightBorder = x > rect.width - border;
+    const onTopBorder = y < border;
     const onBottomBorder = y > rect.height - border;
 
+    if (onLeftBorder && onTopBorder) return 'nw-resize';
+    if (onRightBorder && onTopBorder) return 'ne-resize';
+    if (onLeftBorder && onBottomBorder) return 'sw-resize';
     if (onRightBorder && onBottomBorder) return 'se-resize';
+    if (onLeftBorder) return 'w-resize';
     if (onRightBorder) return 'e-resize';
+    if (onTopBorder) return 'n-resize';
     if (onBottomBorder) return 's-resize';
     return 'move';
   };
@@ -336,26 +385,34 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
         {/* control buttons - shown when hovered or selected */}
         {(isHovered || isSelected) && (
           <>
-            <div
-              className='absolute right-0 -top-8 flex flex-col items-center h-12'
-              style={{ transform: `scale(${1 / zoom})` }}
-            >
-              {/* counter zoom effect */}
-              <button className='w-6 h-6 bg-blue-500 text-white rounded-full hover:bg-blue-600' onClick={handleAddEdge}>
-                +
-              </button>
-            </div>
-            <div
-              className='absolute right-0 -bottom-8 flex flex-col-reverse items-center h-12'
-              style={{ transform: `scale(${1 / zoom})` }}
-            >
-              <button
-                className='w-6 h-6 bg-red-500 text-white rounded-full hover:bg-red-600'
-                onClick={handleRemoveEdge}
+            {!hasUnconnectedOutput && (
+              <div
+                className='absolute right-0 -top-8 flex flex-col items-center h-12'
+                style={{ transform: `scale(${1 / zoom})` }}
               >
-                -
-              </button>
-            </div>
+                <button
+                  className='w-6 h-6 bg-blue-500 text-white rounded-full hover:bg-blue-600'
+                  onClick={handleAddEdge}
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
+                  +
+                </button>
+              </div>
+            )}
+            {data.outputs.length > 0 && (
+              <div
+                className='absolute right-0 -bottom-8 flex flex-col-reverse items-center h-12'
+                style={{ transform: `scale(${1 / zoom})` }}
+              >
+                <button
+                  className='w-6 h-6 bg-red-500 text-white rounded-full hover:bg-red-600'
+                  onClick={handleRemoveEdge}
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
+                  -
+                </button>
+              </div>
+            )}
           </>
         )}
 

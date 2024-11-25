@@ -69,4 +69,13 @@ export type ActionType =
   | { type: 'UNDO' }
   | { type: 'REDO' };
 
-export type NodeResizeCursorType = 'se-resize' | 'e-resize' | 's-resize' | 'move';
+export type NodeResizeCursorType =
+  | 'ne-resize'
+  | 'nw-resize'
+  | 'se-resize'
+  | 'sw-resize'
+  | 'n-resize'
+  | 'w-resize'
+  | 'e-resize'
+  | 's-resize'
+  | 'move';
