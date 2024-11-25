@@ -10,7 +10,7 @@ interface ControlButton {
 }
 
 export const Controller: React.FC = () => {
-  const { addNode } = useEdgify();
+  const { addNode, state } = useEdgify();
   const { handleZoom } = useZoom();
 
   const handleAddNode = () => {
@@ -18,15 +18,16 @@ export const Controller: React.FC = () => {
     const viewportHeight = window.innerHeight;
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
+    const zoom = state.viewport.zoom;
 
-    const centerX = scrollX + viewportWidth / 2;
-    const centerY = scrollY + viewportHeight / 2;
+    const centerX = (scrollX + viewportWidth / 2) / zoom;
+    const centerY = (scrollY + viewportHeight / 2) / zoom;
 
     addNode({
       type: 'default',
       position: { x: centerX, y: centerY },
       inputs: [],
-      dimensions: { width: 1, height: 1 },
+      dimensions: { width: 200, height: 100 },
       outputs: [],
       data: { label: 'New Node' },
     });
