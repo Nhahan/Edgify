@@ -39,12 +39,12 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
     return data.dimensions.height / 2;
   };
 
-  // calculate minimum height based on number of handles
+  // calculate minimum height based on maximum number of handles
   const calculateMinHeight = () => {
     const handleCount = Math.max(data.inputs.length, data.outputs.length);
     const handleSpacing = 30; // spacing between handles
-    const padding = 40; // top and bottom padding
-    return Math.max(handleCount * handleSpacing + padding, 100); // minimum 100px
+    const topBottomPadding = 40; // top and bottom padding
+    return Math.max(handleCount * handleSpacing + topBottomPadding, 100); // minimum 100px
   };
 
   // adjust node height when handles are added/removed
@@ -152,7 +152,7 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
 
   const handleResize = useCallback(
     (e: MouseEvent) => {
-      if (resizeDirection !== null && isResizing && nodeRef.current && resizeStart) {
+      if (isResizing && nodeRef.current && resizeStart && resizeDirection) {
         const minWidth = 100; // minimum width
         const minHeight = calculateMinHeight();
         let newWidth = resizeStart.width;
@@ -351,14 +351,14 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
     >
       <>
         {/* input handles */}
-        {data.inputs.map((input) => (
+        {data.inputs.map((input, index) => (
           <Handle
             key={input.id}
             data={{
               ...input,
               position: {
                 x: -8,
-                y: data.dimensions.height / 2,
+                y: ((index + 1) * data.dimensions.height) / (data.inputs.length + 1),
               },
             }}
             type='input'
@@ -368,14 +368,14 @@ export const Node: React.FC<NodeProps> = ({ data, zoom }) => {
         {previewInput && <Handle data={previewInput} type='input' isPreview={true} />}
 
         {/* output handles */}
-        {data.outputs.map((output) => (
+        {data.outputs.map((output, index) => (
           <Handle
             key={output.id}
             data={{
               ...output,
               position: {
                 x: data.dimensions.width + 8,
-                y: data.dimensions.height / 2,
+                y: ((index + 1) * data.dimensions.height) / (data.outputs.length + 1),
               },
             }}
             type='output'
