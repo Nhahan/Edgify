@@ -28,6 +28,7 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
   height = 3000,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const hasInitialized = useRef(false);
   const { zoom, handleZoom } = useZoom();
   const { handleDrag } = useDragAndDrop();
   const { state, addNode } = useEdgify();
@@ -37,7 +38,7 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
 
   // Initialize first node if initializeNode is true
   useEffect(() => {
-    if (initializeNode && edgifyState.nodes.length === 0) {
+    if (initializeNode && !hasInitialized.current) {
       const defaultDimensions = {
         width: 200,
         height: 100,
@@ -56,8 +57,11 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
         outputs: [],
         data: { label: 'New Node' },
       });
+      console.log('?', edgifyState.nodes.length);
+
+      hasInitialized.current = true;
     }
-  }, []);
+  }, [initializeNode, addNode, width, height, edgifyState.nodes.length]);
 
   useEffect(() => {
     if (containerRef.current) {
