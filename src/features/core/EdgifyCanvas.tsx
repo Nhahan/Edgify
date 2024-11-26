@@ -57,7 +57,6 @@ export const EdgifyCanvas: React.FC<EdgifyProps> = ({
         outputs: [],
         data: { label: 'New Node' },
       });
-      console.log('?', edgifyState.nodes.length);
 
       hasInitialized.current = true;
     }
